@@ -11,6 +11,72 @@ document.addEventListener('DOMContentLoaded', () => {
     const cedulaInput = document.querySelector('#cedula');
     const lookupBtn = document.querySelector('#cedula-lookup-btn');
     const lookupStatus = document.querySelector('#cedula-lookup-status');
+    const stateSelect = document.querySelector('#state');
+    const municipalitySelect = document.querySelector('#municipality');
+    const parishSelect = document.querySelector('#parish');
+    const communeSelect = document.querySelector('#commune');
+
+    async function loadStates() {
+        try {
+            const resp = await fetch('/address/states');
+            const json = await resp.json();
+            if (json.ok) {
+                stateSelect && populateSelect(stateSelect, json.data);
+            }
+        } catch (err) {
+            console.error('states load error', err);
+        }
+    }
+
+    function populateSelect(select, items) {
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Seleccione --</option>';
+        items.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.id;
+            opt.textContent = it.name;
+            select.appendChild(opt);
+        });
+    }
+
+    async function loadMunicipalities(stateId) {
+        if (!stateId) return;
+        try {
+            const resp = await fetch('/address/municipalities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
+                body: JSON.stringify({ state_id: stateId })
+            });
+            const json = await resp.json();
+            if (json.ok) populateSelect(municipalitySelect, json.data);
+        } catch (err) { console.error(err); }
+    }
+
+    async function loadParishes(municipalityId) {
+        if (!municipalityId) return;
+        try {
+            const resp = await fetch('/address/parishes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
+                body: JSON.stringify({ municipality_id: municipalityId })
+            });
+            const json = await resp.json();
+            if (json.ok) populateSelect(parishSelect, json.data);
+        } catch (err) { console.error(err); }
+    }
+
+    async function loadCommunes(parishId) {
+        if (!parishId) return;
+        try {
+            const resp = await fetch('/address/communes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
+                body: JSON.stringify({ parish_id: parishId })
+            });
+            const json = await resp.json();
+            if (json.ok) populateSelect(communeSelect, json.data);
+        } catch (err) { console.error(err); }
+    }
 
     async function lookupCedula() {
         if (!cedulaInput) return;
@@ -118,6 +184,35 @@ document.addEventListener('DOMContentLoaded', () => {
             lookupCedula();
         });
     }
+
+    // Address selects listeners
+    if (stateSelect) {
+        stateSelect.addEventListener('change', (e) => {
+            const id = e.target.value;
+            municipalitySelect && (municipalitySelect.innerHTML = '<option value="">Cargando...</option>');
+            parishSelect && (parishSelect.innerHTML = '<option value="">-- Seleccione --</option>');
+            communeSelect && (communeSelect.innerHTML = '<option value="">-- Seleccione --</option>');
+            loadMunicipalities(id);
+        });
+    }
+    if (municipalitySelect) {
+        municipalitySelect.addEventListener('change', (e) => {
+            const id = e.target.value;
+            parishSelect && (parishSelect.innerHTML = '<option value="">Cargando...</option>');
+            communeSelect && (communeSelect.innerHTML = '<option value="">-- Seleccione --</option>');
+            loadParishes(id);
+        });
+    }
+    if (parishSelect) {
+        parishSelect.addEventListener('change', (e) => {
+            const id = e.target.value;
+            communeSelect && (communeSelect.innerHTML = '<option value="">Cargando...</option>');
+            loadCommunes(id);
+        });
+    }
+
+    // load initial states
+    if (stateSelect) loadStates();
 
     showStep(current);
 });

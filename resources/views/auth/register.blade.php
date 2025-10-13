@@ -24,17 +24,17 @@
         </div>
     @endif
 
-    <form id="multi-step-form" method="POST" action="{{ url('register') }}">
+    <form id="multi-step-form " method="POST" action="{{ url('register') }}">
         @csrf
 
         {{-- Steps navigation (clickable) --}}
         <div class="flex justify-between mb-6">
             <a href="#" data-step-nav class="text-sm">DATOS PERSONALES</a>
             <a href="#" data-step-nav class="text-sm">DIRECCIÓN DE DOMICILIO</a>
-            <a href="#" data-step-nav class="text-sm">Credenciales</a>
+            <a href="#" data-step-nav class="text-sm">CREDENCIALES Y DATOS ADICIONALES</a>
         </div>
 
-        {{-- Step: Personal (ask only cedula first, then fill personal fields) --}}
+        {{-- Step: DATOS PERSONALES --}}
         <div data-step="0">
             <div class="mb-4 grid grid-cols-2 gap-4">
                 <div>
@@ -87,40 +87,52 @@
             </div>
         </div>
 
-        {{-- Step: Cuenta --}}
+        {{-- Step: Dirección de Domicilio --}}
         <div data-step="1" style="display:none">
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="{{ old('email') }}"
-                    required
-                    class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="state" class="block text-gray-700 text-sm font-bold mb-2">Estado *</label>
+                    <select id="state" name="state" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="municipality" class="block text-gray-700 text-sm font-bold mb-2">Municipio *</label>
+                    <select id="municipality" name="municipality" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">-- Seleccione --</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="parish" class="block text-gray-700 text-sm font-bold mb-2">Parroquia *</label>
+                    <select id="parish" name="parish" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">-- Seleccione --</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="commune" class="block text-gray-700 text-sm font-bold mb-2">Comuna</label>
+                    <select id="commune" name="commune" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">-- Seleccione --</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-            </div>
-
-            <div class="mb-6">
-                <label for="password_confirmation" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Contraseña:</label>
-                <input
-                    type="password"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    required
-                    class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="urbanizacion" class="block text-gray-700 text-sm font-bold mb-2">Urbanización *</label>
+                    <input type="text" id="urbanizacion" name="urbanizacion" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
+                <div>
+                    <label for="calle" class="block text-gray-700 text-sm font-bold mb-2">Calle o Avenida *</label>
+                    <input type="text" id="calle" name="calle" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
+                <div>
+                    <label for="numero_casa" class="block text-gray-700 text-sm font-bold mb-2">Número Casa/Apartamento *</label>
+                    <input type="text" id="numero_casa" name="numero_casa" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
+                <div>
+                    <label for="otro" class="block text-gray-700 text-sm font-bold mb-2">Otros</label>
+                    <input type="text" id="otro" name="otro" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
             </div>
 
             <div class="flex justify-between">
@@ -129,28 +141,57 @@
             </div>
         </div>
 
-        {{-- Step: Social --}}
+        {{-- Step: Credenciales y Datos Adicionales --}}
         <div data-step="2" style="display:none">
-            <div class="mb-4">
-                <label for="facebook" class="block text-gray-700 text-sm font-bold mb-2">Facebook:</label>
-                <input
-                    type="text"
-                    id="facebook"
-                    name="facebook"
-                    value="{{ old('facebook') }}"
-                    class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="estado_civil" class="block text-gray-700 text-sm font-bold mb-2">Estado Civil *</label>
+                    <select id="estado_civil" name="estado_civil" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">-- Seleccione --</option>
+                        <option value="soltero">Soltero(a)</option>
+                        <option value="casado">Casado(a)</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="ocupacion" class="block text-gray-700 text-sm font-bold mb-2">Ocupación o Profesión *</label>
+                    <select id="ocupacion" name="ocupacion" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
+                        <option value="">-- Seleccione --</option>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="empleado">Empleado</option>
+                        <option value="independiente">Independiente</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="mb-6">
-                <label for="twitter" class="block text-gray-700 text-sm font-bold mb-2">Twitter:</label>
-                <input
-                    type="text"
-                    id="twitter"
-                    name="twitter"
-                    value="{{ old('twitter') }}"
-                    class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+            <div class="grid grid-cols-2 gap-4 mb-4 items-end">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Número Celular *</label>
+                    <div class="flex">
+                        <select id="phone_code" name="phone_code" class="shadow-sm appearance-none border rounded-l-lg py-2 px-3 text-gray-700">
+                            <option value="+58">+58</option>
+                            <option value="+1">+1</option>
+                            <option value="+34">+34</option>
+                        </select>
+                        <input type="text" id="phone_number" name="phone_number" required placeholder="Número Celular" class="shadow-sm appearance-none border rounded-r-lg w-full py-2 px-3 text-gray-700" />
+                    </div>
+                </div>
+                <div>
+                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña *</label>
+                    <input type="password" id="password" name="password" required class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico *</label>
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" required class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
+                <div>
+                    <label for="email_confirmation" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Correo *</label>
+                    <input type="email" id="email_confirmation" name="email_confirmation" required class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                </div>
             </div>
 
             <div class="flex justify-between">
