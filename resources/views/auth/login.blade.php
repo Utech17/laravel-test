@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    {{-- Esta línea es crucial para que Vite cargue los estilos de Tailwind --}}
-    @vite('resources/css/app.css')
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+@extends('layouts.auth')
 
+@section('title', 'Login')
+
+@section('content')
 <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
     <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
 
@@ -63,6 +57,4 @@
     </form>
     <p class="text-center text-sm text-gray-600 mt-4">¿No tienes cuenta? <a href="{{ route('register') }}" class="text-blue-500 hover:underline">Regístrate</a></p>
 </div>
-
-</body>
-</html>
+@endsection

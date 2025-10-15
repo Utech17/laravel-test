@@ -20,11 +20,113 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const resp = await fetch('/address/states');
             const json = await resp.json();
-            if (json.ok) {
-                stateSelect && populateSelect(stateSelect, json.data);
+            if (json.ok && stateSelect) {
+                populateSelect(stateSelect, json.data, true);
+                const oldState = stateSelect.dataset.old;
+                if (oldState) stateSelect.value = oldState;
+                if (stateSelect.value) await loadMunicipalities(stateSelect.value);
             }
         } catch (err) {
             console.error('states load error', err);
+        }
+    }
+
+    async function loadMunicipalities(stateId) {
+        municipalitySelect && (municipalitySelect.disabled = true);
+        try {
+            const resp = await fetch('/address/municipalities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ state_id: stateId })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const json = await resp.json();
+            if (json.ok && municipalitySelect) {
+                populateSelect(municipalitySelect, json.data, true);
+                municipalitySelect.disabled = false;
+                const oldMun = municipalitySelect.dataset.old;
+                if (oldMun) {
+                    municipalitySelect.value = oldMun;
+                    await loadParishes(oldMun);
+                }
+            }
+        } catch (err) {
+            console.error('municipalities load error', err);
+            const errBox = document.querySelector('#address-error');
+            if (errBox) {
+                errBox.style.display = 'block';
+                errBox.textContent = 'No se pudieron cargar los municipios. Revisa la consola del navegador.';
+            }
+        }
+    }
+
+    async function loadParishes(municipalityId) {
+        parishSelect && (parishSelect.disabled = true);
+        try {
+            const resp = await fetch('/address/parishes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ municipality_id: municipalityId })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const json = await resp.json();
+            if (json.ok && parishSelect) {
+                populateSelect(parishSelect, json.data, true);
+                parishSelect.disabled = false;
+                const oldPar = parishSelect.dataset.old;
+                if (oldPar) {
+                    parishSelect.value = oldPar;
+                    await loadCommunes(oldPar);
+                }
+            }
+        } catch (err) {
+            console.error('parishes load error', err);
+            const errBox = document.querySelector('#address-error');
+            if (errBox) {
+                errBox.style.display = 'block';
+                errBox.textContent = 'No se pudieron cargar las parroquias. Revisa la consola del navegador.';
+            }
+        }
+    }
+
+    async function loadCommunes(parishId) {
+        communeSelect && (communeSelect.disabled = true);
+        try {
+            const resp = await fetch('/address/communes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ parish_id: parishId })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const json = await resp.json();
+            if (json.ok && communeSelect) {
+                populateSelect(communeSelect, json.data, true);
+                communeSelect.disabled = false;
+                const oldCom = communeSelect.dataset.old;
+                if (oldCom) communeSelect.value = oldCom;
+            }
+        } catch (err) {
+            console.error('communes load error', err);
+            const errBox = document.querySelector('#address-error');
+            if (errBox) {
+                errBox.style.display = 'block';
+                errBox.textContent = 'No se pudieron cargar las comunas. Revisa la consola del navegador.';
+            }
         }
     }
 
@@ -39,44 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function loadMunicipalities(stateId) {
-        if (!stateId) return;
-        try {
-            const resp = await fetch('/address/municipalities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
-                body: JSON.stringify({ state_id: stateId })
-            });
-            const json = await resp.json();
-            if (json.ok) populateSelect(municipalitySelect, json.data);
-        } catch (err) { console.error(err); }
-    }
-
-    async function loadParishes(municipalityId) {
-        if (!municipalityId) return;
-        try {
-            const resp = await fetch('/address/parishes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
-                body: JSON.stringify({ municipality_id: municipalityId })
-            });
-            const json = await resp.json();
-            if (json.ok) populateSelect(parishSelect, json.data);
-        } catch (err) { console.error(err); }
-    }
-
-    async function loadCommunes(parishId) {
-        if (!parishId) return;
-        try {
-            const resp = await fetch('/address/communes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
-                body: JSON.stringify({ parish_id: parishId })
-            });
-            const json = await resp.json();
-            if (json.ok) populateSelect(communeSelect, json.data);
-        } catch (err) { console.error(err); }
-    }
+    // Load chained selects: estado -> municipio -> parroquia -> comuna
 
     async function lookupCedula() {
         if (!cedulaInput) return;
@@ -85,13 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
         lookupStatus.textContent = 'Buscando...';
         lookupBtn.disabled = true;
         try {
-            const resp = await fetch('/lookup-id', {
-                method: 'POST',
+            const resp = await fetch('/lookup-id/' + cedula, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 },
-                body: JSON.stringify({ cedula })
             });
             const data = await resp.json();
             if (resp.ok && data.ok) {
@@ -128,26 +192,61 @@ document.addEventListener('DOMContentLoaded', () => {
             n.classList.toggle('font-bold', i === index);
             n.classList.toggle('text-blue-600', i === index);
         });
+        // toggle step descriptions
+        const descs = document.querySelectorAll('.step-desc');
+        descs.forEach(d => {
+            d.style.display = d.dataset.stepDesc == index ? 'block' : 'none';
+        });
+        // show 'have-account' only on step 0 and 2
+        const haveAccount = document.querySelector('#have-account');
+        if (haveAccount) {
+            haveAccount.style.display = (index === 0 || index === 2) ? 'flex' : 'none';
+        }
     }
 
     nextBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             // basic validation: required fields inside current step
-            const inputs = steps[current].querySelectorAll('input, textarea');
+            const inputs = steps[current].querySelectorAll('input[required], textarea[required], select[required]');
             for (let inp of inputs) {
-                if (inp.hasAttribute('required') && !inp.value.trim()) {
+                if (!inp.value.trim()) {
                     inp.classList.add('border-red-500');
                     inp.focus();
                     return;
                 }
             }
-            // if on first step and personal fields are hidden, show them instead of moving on
+            // special handling for first step
             if (current === 0) {
                 const personal = document.querySelector('#personal-fields');
+                // if personal block is hidden, reveal it first (no advance)
                 if (personal && personal.style.display === 'none') {
                     personal.style.display = 'block';
                     return;
+                }
+                // if personal block is visible, require key personal fields before advancing
+                if (personal && personal.style.display !== 'none') {
+                        const requiredPersonal = ['#primer_nombre', '#primer_apellido'];
+                        for (let sel of requiredPersonal) {
+                            const el = document.querySelector(sel);
+                            if (!el) continue;
+                            const val = (el.value || '').toString().trim();
+                            const isReadonly = el.hasAttribute('readonly');
+                            // allow readonly fields if they have a value
+                            if (val.length === 0) {
+                                if (isReadonly) {
+                                    // readonly but empty -> still invalid
+                                    el.classList.add('border-red-500');
+                                    el.focus();
+                                    return;
+                                } else {
+                                    // editable and empty -> invalid
+                                    el.classList.add('border-red-500');
+                                    el.focus();
+                                    return;
+                                }
+                            }
+                        }
                 }
             }
             if (current < steps.length - 1) {
@@ -178,41 +277,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    if (lookupBtn) {
-        lookupBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            lookupCedula();
-        });
-    }
+    // lookup ahora se hace mediante submit al controlador (no JS). No attach de evento aquí.
 
-    // Address selects listeners
-    if (stateSelect) {
-        stateSelect.addEventListener('change', (e) => {
-            const id = e.target.value;
-            municipalitySelect && (municipalitySelect.innerHTML = '<option value="">Cargando...</option>');
-            parishSelect && (parishSelect.innerHTML = '<option value="">-- Seleccione --</option>');
-            communeSelect && (communeSelect.innerHTML = '<option value="">-- Seleccione --</option>');
-            loadMunicipalities(id);
-        });
-    }
-    if (municipalitySelect) {
-        municipalitySelect.addEventListener('change', (e) => {
-            const id = e.target.value;
-            parishSelect && (parishSelect.innerHTML = '<option value="">Cargando...</option>');
-            communeSelect && (communeSelect.innerHTML = '<option value="">-- Seleccione --</option>');
-            loadParishes(id);
-        });
-    }
-    if (parishSelect) {
-        parishSelect.addEventListener('change', (e) => {
-            const id = e.target.value;
-            communeSelect && (communeSelect.innerHTML = '<option value="">Cargando...</option>');
-            loadCommunes(id);
-        });
-    }
-
-    // load initial states
     if (stateSelect) loadStates();
+
+    // wire change handlers
+    stateSelect && stateSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val) loadMunicipalities(val);
+        // reset downstream
+        municipalitySelect && (municipalitySelect.innerHTML = '<option value="">Seleccione estado primero</option>', municipalitySelect.disabled = true);
+        parishSelect && (parishSelect.innerHTML = '<option value="">Seleccione municipio primero</option>', parishSelect.disabled = true);
+        communeSelect && (communeSelect.innerHTML = '<option value="">Seleccione parroquia primero</option>', communeSelect.disabled = true);
+    });
+
+    municipalitySelect && municipalitySelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val) loadParishes(val);
+        parishSelect && (parishSelect.innerHTML = '<option value="">Cargando parroquias...</option>', parishSelect.disabled = true);
+        communeSelect && (communeSelect.innerHTML = '<option value="">Seleccione parroquia primero</option>', communeSelect.disabled = true);
+    });
+
+    parishSelect && parishSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val) loadCommunes(val);
+        communeSelect && (communeSelect.innerHTML = '<option value="">Cargando comunas...</option>', communeSelect.disabled = true);
+    });
 
     showStep(current);
 });

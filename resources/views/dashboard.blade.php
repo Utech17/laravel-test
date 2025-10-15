@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    @vite('resources/css/app.css')
-</head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+@extends('layouts.app')
 
-    {{-- Topbar --}}
-    <x-topbar />
+@section('title', 'Dashboard')
+
+@section('content')
 
     {{-- Contenido Principal del Dashboard --}}
     <div class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md flex flex-col items-center">
@@ -34,6 +27,4 @@
             </div>
         </div>
     </div>
-
-</body>
-</html>
+@endsection
