@@ -106,6 +106,7 @@
                 <button data-prev class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg" style="display:none">Atrás</button>
                 <button data-next class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Siguiente</button>
             </div>
+            @include('components.have-account')
         </div>
 
         {{-- Step: Dirección de Domicilio --}}
@@ -242,7 +243,5 @@
     
 </div>
 
-<div id="have-account" class="mt-8 flex justify-center" style="display:none">
-    <p class="text-center text-sm text-gray-600">¿Ya tienes una cuenta? <a href="{{ route('login') }}" class="text-blue-500 hover:underline">Iniciar sesión</a></p>
-</div>
+@include('components.have-account')
 @endsection
