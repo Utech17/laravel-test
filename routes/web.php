@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CuidadanoController;
+use App\Http\Controllers\CiudadanoController;
 use App\Http\Controllers\AddressController;
 
 Route::middleware(['auth'])->group(function () {
@@ -23,6 +23,8 @@ Route::post('register/lookup', [RegisterController::class, 'lookupCedula'])->nam
 // Lookup cedula (demo) - allow GET /lookup-id/{cedula} used by frontend JS and also POST if needed
 Route::get('lookup-id/{cedula}', [CuidadanoController::class, 'FindOne'])->name('lookup-id.get');
 Route::post('lookup-id', [CuidadanoController::class, 'FindOne'])->name('lookup-id');
+// Crear ciudadano desde modal (AJAX)
+Route::post('ciudadano', [CiudadanoController::class, 'CreateCiudadano'])->name('ciudadano.create');
 
 // Address AJAX endpoints (demo)
 Route::get('address/states', [AddressController::class, 'states'])->name('address.states');

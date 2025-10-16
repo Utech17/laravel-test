@@ -56,6 +56,11 @@
                 @endif
                 @if(isset($lookup_not_found) && $lookup_not_found)
                     <span class="text-yellow-600">Cédula no encontrada.</span>
+                    <div class="mt-2 text-sm">
+                        <span>¿Deseas registrar este ciudadano?</span>
+                        <button id="ciudadano-no" type="button" class="ml-2 text-sm text-gray-600 underline">No</button>
+                        <button id="ciudadano-si" type="button" class="ml-2 text-sm text-blue-600 underline">Sí</button>
+                    </div>
                 @endif
                 @if(isset($lookup_already_registered) && $lookup_already_registered)
                     <span class="text-red-600">Este número de cédula ya está registrado en otro perfil. Si crees que es un error, contacta al soporte.</span>
@@ -73,7 +78,9 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="nacionalidad_display" class="block text-gray-700 text-sm font-bold mb-2">Nacionalidad</label>
-                        <input type="text" id="nacionalidad_display" value="{{ old('nacionalidad', isset($lookup) && $lookup ? $lookup->nacionalidad : '') }}" disabled class="bg-gray-100 shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
+                            @php $defaultNac = old('nacionalidad', isset($lookup) && $lookup ? $lookup->nacionalidad : 'Venezolana'); @endphp
+                            <input type="hidden" id="nacionalidad" name="nacionalidad" value="{{ $defaultNac }}" />
+                            <input type="text" id="nacionalidad_display" value="{{ $defaultNac }}" disabled class="bg-gray-100 shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" />
                     </div>
                     <div>
                         <label for="primer_nombre" class="block text-gray-700 text-sm font-bold mb-2">Primer Nombre *</label>
@@ -97,7 +104,11 @@
                     </div>
                     <div>
                         <label for="sexo" class="block text-gray-700 text-sm font-bold mb-2">Sexo</label>
-                        <input type="text" id="sexo" name="sexo" value="{{ old('sexo', isset($lookup) && $lookup ? $lookup->sexo : '') }}" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" {{ isset($lookup) && $lookup ? 'readonly' : '' }} />
+                            <select id="sexo" name="sexo" class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700" {{ isset($lookup) && $lookup ? 'disabled' : '' }}>
+                                <option value="">-- Seleccione --</option>
+                                <option value="F" {{ (old('sexo', isset($lookup) && $lookup ? $lookup->sexo : '') === 'F') ? 'selected' : '' }}>F (Femenino)</option>
+                                <option value="M" {{ (old('sexo', isset($lookup) && $lookup ? $lookup->sexo : '') === 'M') ? 'selected' : '' }}>M (Masculino)</option>
+                            </select>
                     </div>
                 </div>
             </div>
@@ -245,3 +256,52 @@
 
 @include('components.have-account')
 @endsection
+
+{{-- Modal para crear ciudadano rápido --}}
+<div id="ciudadano-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display:none;">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+        <h3 class="text-lg font-semibold mb-4">Registrar Ciudadano</h3>
+        <form id="ciudadano-create-form">
+            @csrf
+            <input type="hidden" name="nacionalidad" value="Venezolana" />
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="modal_cedula" class="block text-sm font-bold mb-1">Cédula</label>
+                    <input id="modal_cedula" name="cedula" type="text" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_primer_nombre" class="block text-sm font-bold mb-1">Primer Nombre</label>
+                    <input id="modal_primer_nombre" name="primer_nombre" type="text" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_segundo_nombre" class="block text-sm font-bold mb-1">Segundo Nombre</label>
+                    <input id="modal_segundo_nombre" name="segundo_nombre" type="text" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_primer_apellido" class="block text-sm font-bold mb-1">Primer Apellido</label>
+                    <input id="modal_primer_apellido" name="primer_apellido" type="text" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_segundo_apellido" class="block text-sm font-bold mb-1">Segundo Apellido</label>
+                    <input id="modal_segundo_apellido" name="segundo_apellido" type="text" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_fecha_nacimiento" class="block text-sm font-bold mb-1">Fecha Nacimiento</label>
+                    <input id="modal_fecha_nacimiento" name="fecha_nacimiento" type="date" class="shadow-sm border rounded-lg w-full py-2 px-3" />
+                </div>
+                <div>
+                    <label for="modal_sexo" class="block text-sm font-bold mb-1">Sexo</label>
+                    <select id="modal_sexo" name="sexo" class="shadow-sm border rounded-lg w-full py-2 px-3">
+                        <option value="">-- Seleccione --</option>
+                        <option value="F">F (Femenino)</option>
+                        <option value="M">M (Masculino)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button id="ciudadano-modal-cancel" type="button" class="mr-2 bg-gray-200 px-4 py-2 rounded-lg">Cancelar</button>
+                <button id="ciudadano-modal-save" type="button" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

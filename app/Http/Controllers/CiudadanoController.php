@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ciudadano;
 
-class CuidadanoController extends Controller{
+class CiudadanoController extends Controller{
     public function FindOne(Request $request, $cedula = null){
         $cedula = $cedula ?? $request->input('cedula');
         if (! $cedula) {
@@ -27,9 +27,10 @@ class CuidadanoController extends Controller{
             'primer_nombre' => 'required|string|max:255',
             'segundo_nombre' => 'nullable|string|max:255',
             'primer_apellido' => 'required|string|max:255',
-            'segundo_apellido' => 'nullable|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
-            'sexo' => 'nullable|string|max:1',
+            'segundo_apellido' => 'required|nullable|string|max:255',
+            'fecha_nacimiento' => 'required|nullable|date',
+            'sexo' => 'required|nullable|string|max:1',
+            'nacionalidad' => 'required|string|max:50',
         ]);
         $ciudadano = Ciudadano::create($data);
         return response()->json(['ok' => true, 'data' => $ciudadano]);

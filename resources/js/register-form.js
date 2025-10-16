@@ -161,7 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok && data.ok) {
                 const d = data.data;
                 // fill fields if present
-                document.querySelector('#nacionalidad') && (document.querySelector('#nacionalidad').value = d.nacionalidad || '');
+                // set nacionalidad hidden + display
+                if (document.querySelector('#nacionalidad')) document.querySelector('#nacionalidad').value = d.nacionalidad || 'Venezolana';
+                if (document.querySelector('#nacionalidad_display')) document.querySelector('#nacionalidad_display').value = d.nacionalidad || 'Venezolana';
                 document.querySelector('#cedula') && (document.querySelector('#cedula').value = d.cedula || '');
                 document.querySelector('#primer_nombre') && (document.querySelector('#primer_nombre').value = d.primer_nombre || '');
                 document.querySelector('#segundo_nombre') && (document.querySelector('#segundo_nombre').value = d.segundo_nombre || '');
@@ -280,6 +282,97 @@ document.addEventListener('DOMContentLoaded', () => {
     // lookup ahora se hace mediante submit al controlador (no JS). No attach de evento aquí.
 
     if (stateSelect) loadStates();
+
+    // Modal / quick-create ciudadano
+    const ciudadanoSiBtn = document.querySelector('#ciudadano-si');
+    const ciudadanoNoBtn = document.querySelector('#ciudadano-no');
+    const ciudadanoModal = document.querySelector('#ciudadano-modal');
+    const ciudadanoModalCancel = document.querySelector('#ciudadano-modal-cancel');
+    const ciudadanoModalSave = document.querySelector('#ciudadano-modal-save');
+    const ciudadanoCreateForm = document.querySelector('#ciudadano-create-form');
+
+    if (ciudadanoSiBtn) {
+        ciudadanoSiBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // populate modal cedula with current cedula
+            const modalCed = document.querySelector('#modal_cedula');
+            if (modalCed && cedulaInput) modalCed.value = cedulaInput.value || '';
+            if (ciudadanoModal) ciudadanoModal.style.display = 'flex';
+        });
+    }
+
+    if (ciudadanoNoBtn) {
+        ciudadanoNoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // reset page to clear lookup (redirect to register route)
+            window.location.href = '/register';
+        });
+    }
+
+    if (ciudadanoModalCancel) {
+        ciudadanoModalCancel.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (ciudadanoModal) ciudadanoModal.style.display = 'none';
+        });
+    }
+
+    if (ciudadanoModalSave && ciudadanoCreateForm) {
+        ciudadanoModalSave.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(ciudadanoCreateForm);
+            const payload = {};
+            for (let pair of formData.entries()) payload[pair[0]] = pair[1];
+            try {
+                ciudadanoModalSave.disabled = true;
+                const resp = await fetch('/ciudadano', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                const json = await resp.json();
+                if (resp.ok && json.ok) {
+                    const d = json.data;
+                    // fill main form personal fields and set hidden ciudadano_id
+                    // set nacionalidad hidden + display (modal sends 'Venezolana')
+                    if (document.querySelector('#nacionalidad')) document.querySelector('#nacionalidad').value = d.nacionalidad || 'Venezolana';
+                    if (document.querySelector('#nacionalidad_display')) document.querySelector('#nacionalidad_display').value = d.nacionalidad || 'Venezolana';
+                    document.querySelector('#cedula') && (document.querySelector('#cedula').value = d.cedula || '');
+                    document.querySelector('#primer_nombre') && (document.querySelector('#primer_nombre').value = d.primer_nombre || '');
+                    document.querySelector('#segundo_nombre') && (document.querySelector('#segundo_nombre').value = d.segundo_nombre || '');
+                    document.querySelector('#primer_apellido') && (document.querySelector('#primer_apellido').value = d.primer_apellido || '');
+                    document.querySelector('#segundo_apellido') && (document.querySelector('#segundo_apellido').value = d.segundo_apellido || '');
+                    document.querySelector('#fecha_nacimiento') && (document.querySelector('#fecha_nacimiento').value = d.fecha_nacimiento || '');
+                    document.querySelector('#sexo') && (document.querySelector('#sexo').value = d.sexo || '');
+                    // show personal block
+                    const personal = document.querySelector('#personal-fields');
+                    if (personal) personal.style.display = 'block';
+                    // set hidden ciudadano_id (create if not present)
+                    let hidden = document.querySelector('input[name="ciudadano_id"]');
+                    if (!hidden) {
+                        hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'ciudadano_id';
+                        document.querySelector('#multi-step-form').appendChild(hidden);
+                    }
+                    hidden.value = d.id;
+                    // close modal
+                    if (ciudadanoModal) ciudadanoModal.style.display = 'none';
+                } else {
+                    alert(json.message || 'Error al crear ciudadano');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al crear ciudadano');
+            } finally {
+                ciudadanoModalSave.disabled = false;
+            }
+        });
+    }
 
     // wire change handlers
     stateSelect && stateSelect.addEventListener('change', (e) => {
